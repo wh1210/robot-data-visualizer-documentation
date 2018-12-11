@@ -1,0 +1,709 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>gui.robot_data_visualizer &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gui.robot_data_visualizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;TkAgg&quot;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.lines</span> <span class="k">as</span> <span class="nn">lines</span>
+<span class="kn">import</span> <span class="nn">matplotlib.image</span> <span class="k">as</span> <span class="nn">mpimg</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_tkagg</span> <span class="k">import</span> <span class="n">FigureCanvasTkAgg</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="k">import</span> <span class="n">Figure</span>
+
+<span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+
+<span class="kn">from</span> <span class="nn">tools.get_dates_umich</span> <span class="k">import</span> <span class="n">get_dates_umich</span>
+<span class="kn">from</span> <span class="nn">tools.staticmap_for_gps</span> <span class="k">import</span> <span class="n">map_for_gps</span>
+<span class="kn">from</span> <span class="nn">tools.data_manager</span> <span class="k">import</span> <span class="n">DataManager</span>
+<span class="kn">from</span> <span class="nn">tools.view_lidar</span> <span class="k">import</span> <span class="n">hokuyo_plot</span>
+<span class="kn">from</span> <span class="nn">tools.view_lidar</span> <span class="k">import</span> <span class="n">threshold_lidar_pts</span>
+
+
+<div class="viewcode-block" id="VisualizerFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame">[docs]</a><span class="k">class</span> <span class="nc">VisualizerFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the main window where the robot data is seen by the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_gps</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_plot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_plot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_plot</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_image</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="VisualizerFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.widgets">[docs]</a>    <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up widgets for the frame.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Viewer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_gps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">FigureCanvasTkAgg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">get_tk_widget</span><span class="p">()</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_initialize_data_manager"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_initialize_data_manager">[docs]</a>    <span class="k">def</span> <span class="nf">callback_initialize_data_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *Load Data* button.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup_data</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">date</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">&#39;../..&#39;</span><span class="p">)</span> <span class="c1"># TODO patched here - add this to end of load_gps() / load_lidar() functions</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup_data</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.setup_data"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.setup_data">[docs]</a>    <span class="k">def</span> <span class="nf">setup_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function sets up all of the data (except lidar) needed by the application.</span>
+
+<span class="sd">        :param date: Determines which date from the robotics dataset to use.</span>
+<span class="sd">        :type date: str.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">owd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_gps</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;DM_START&#39;</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="o">=</span> <span class="n">DataManager</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">setup_data_files</span><span class="p">(</span><span class="s1">&#39;sensor_data&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">load_gps</span><span class="p">()</span>
+        <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span> <span class="o">=</span> <span class="n">map_for_gps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">]</span> <span class="c1"># in image coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_image</span> <span class="o">=</span> <span class="n">mpimg</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;map.png&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Viewer&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;DM_READY&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_gps_on"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_gps_on">[docs]</a>    <span class="k">def</span> <span class="nf">callback_gps_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *On* button under the *GPS Control* menu.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;GPS_START&#39;</span><span class="p">)</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_idx_for_gps_update</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_timestamp</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gps_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax_gps</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="n">idx</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;GPS_READY&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_lidar_off</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_gps_on</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_gps_off"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_gps_off">[docs]</a>    <span class="k">def</span> <span class="nf">callback_gps_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *Off* button under the *GPS Control* menu.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_gps</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Viewer&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;GPS_REMOVE&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_gps_slider_changed"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_gps_slider_changed">[docs]</a>    <span class="k">def</span> <span class="nf">callback_gps_slider_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *Off* button under the *GPS Control* menu.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_idx_for_gps_update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_gps</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_timestamp</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;GPS_UPDATE&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.update_gps"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.update_gps">[docs]</a>    <span class="k">def</span> <span class="nf">update_gps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function updates the GPS data that is displayed in the main viewing window.</span>
+<span class="sd">        :param idx: Index into the array of GPS data that is to be displayed.</span>
+<span class="sd">        :type idx: int.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gps_plot</span><span class="o">.</span><span class="n">set_xdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="n">idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gps_plot</span><span class="o">.</span><span class="n">set_ydata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="n">idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.update_timestamp"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.update_timestamp">[docs]</a>    <span class="k">def</span> <span class="nf">update_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function updates the timestamp in the main viewing window.</span>
+
+<span class="sd">        :param idx: Index into the array of GPS data to be used for retrieval of the time stamp.</span>
+<span class="sd">        :type idx: int.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">curr_tstamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timestamp_for_gps_update</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;time stamp: &#39;</span> <span class="o">+</span> <span class="n">curr_tstamp</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.get_idx_for_gps_update"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.get_idx_for_gps_update">[docs]</a>    <span class="k">def</span> <span class="nf">get_idx_for_gps_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function returns the index to be used for updating the GPS data.</span>
+<span class="sd">        :return: int -- the index to be used for the GPS update</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slider_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">gps_control</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">idx_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">slider_val</span> <span class="o">*</span> <span class="n">idx_ratio</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.get_timestamp_for_gps_update"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.get_timestamp_for_gps_update">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestamp_for_gps_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gps_data_idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function returns the timestamp in a readable format for the given GPS data index.</span>
+
+<span class="sd">        :param gps_data_idx: Index into the array of GPS data to be used for retrieval of the time stamp.</span>
+<span class="sd">        :return: str -- the timestamp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idx_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;gps&#39;</span><span class="p">][</span><span class="s1">&#39;tstamp&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gps_data_idx</span> <span class="o">*</span> <span class="n">idx_ratio</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;gps&#39;</span><span class="p">][</span><span class="s1">&#39;tstamp&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000000</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_map_on"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_map_on">[docs]</a>    <span class="k">def</span> <span class="nf">callback_map_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *On* button under the *Map Control* menu.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">map_image</span><span class="p">)</span>
+                    <span class="c1"># draw scale on the map</span>
+                    <span class="n">map_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_map_scale</span><span class="p">()</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="n">distance</span> <span class="o">=</span> <span class="n">map_scale</span> <span class="o">*</span> <span class="mi">200</span>
+                    <span class="k">if</span> <span class="n">distance</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
+                        <span class="n">scale_str</span> <span class="o">=</span> <span class="s2">&quot;scale = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)))</span> <span class="o">+</span> <span class="s2">&quot; kilometers&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">scale_str</span> <span class="o">=</span> <span class="s2">&quot;scale = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">distance</span><span class="p">)))</span> <span class="o">+</span> <span class="s2">&quot; meters&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="n">scale_str</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;MAP_READY&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;MAP_ERROR&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_lidar_off</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_map_on</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_map_off"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_map_off">[docs]</a>    <span class="k">def</span> <span class="nf">callback_map_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to the *Off* button under the *Map Control* menu.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">map_on</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_map</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gps_on</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">callback_gps_on</span><span class="p">()</span> <span class="c1"># because the previous line clears both map and gps</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.callback_date_changed"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.callback_date_changed">[docs]</a>    <span class="k">def</span> <span class="nf">callback_date_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This callback responds to a change in the date selection menu in the toolbar.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="c1"># Need to call get() because this is a StringVar object</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">new_date</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">new_date</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VisualizerFrame.get_map_scale"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.get_map_scale">[docs]</a>    <span class="k">def</span> <span class="nf">get_map_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function calculates the map scale in units of meters per pixel.</span>
+
+<span class="sd">        :return: float64 -- map scale (m/px)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">111000</span> <span class="c1"># meters per degree of latitude (approx.)</span>
+        <span class="n">lat_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;gps_range&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_lat_range</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">lat_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">lat_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">d_x_pixels</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gps_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">map_scale</span> <span class="o">=</span> <span class="n">d_lat_range</span> <span class="o">*</span> <span class="n">k</span> <span class="o">/</span> <span class="n">d_x_pixels</span>
+        <span class="k">return</span> <span class="n">map_scale</span> <span class="c1"># units of meters per pixel</span></div>
+
+    <span class="k">def</span> <span class="nf">callback_lidar_slider_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_idx_for_lidar_update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_lidar</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="c1"># self.update_timestamp(idx)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="s1">&#39;Lidar updated&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VisualizerFrame.get_idx_for_lidar_update"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.VisualizerFrame.get_idx_for_lidar_update">[docs]</a>    <span class="k">def</span> <span class="nf">get_idx_for_lidar_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function returns the index to be used for updating the Lidar data.</span>
+
+<span class="sd">        :return: int -- the index to be used for the Lidar update</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slider_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">lidar_control</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">idx_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">slider_val</span> <span class="o">*</span> <span class="n">idx_ratio</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">update_lidar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">threshold_lidar_pts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_plot</span><span class="o">.</span><span class="n">set_xdata</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_plot</span><span class="o">.</span><span class="n">set_ydata</span><span class="p">(</span><span class="n">yt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">callback_lidar_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Turn off gps and map because the lidar cannot be overlaid at this time.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_map_off</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback_gps_off</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">callback_initialize_data_manager</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;lidar&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">setup_data_files</span><span class="p">(</span><span class="s1">&#39;hokuyo&#39;</span><span class="p">)</span>
+                <span class="n">pickled</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">delete_pickle</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">load_lidar</span><span class="p">(</span><span class="mi">4000</span><span class="p">,</span> <span class="n">pickled</span><span class="p">,</span> <span class="n">delete_pickle</span><span class="p">)</span> <span class="c1"># TODO - global constant for lidar samples</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;lidar&#39;</span><span class="p">]</span>
+
+            <span class="n">xlimits</span><span class="p">,</span> <span class="n">ylimits</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlimits</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylimits</span><span class="p">)</span>
+            <span class="n">hokuyo_plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="p">)</span>
+            <span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">threshold_lidar_pts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lidar_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="s1">&#39;r.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+
+    <span class="k">def</span> <span class="nf">callback_lidar_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lidar_on</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax_lidar</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ToolbarFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ToolbarFrame">[docs]</a><span class="k">class</span> <span class="nc">ToolbarFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents the toolbar at the top of the window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="n">get_dates_umich</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">option_menu</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ToolbarFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ToolbarFrame.widgets">[docs]</a>    <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up widgets for the frame.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="n">get_dates_umich</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Load Data&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dates</span><span class="p">[</span><span class="mi">24</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">option_menu</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dates</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callback_date_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">option_menu</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ToolbarFrame.bind_widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ToolbarFrame.bind_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">bind_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Bind widgets to their callback functions.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_initialize_data_manager</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">callback_date_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_date_changed</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ControlFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame">[docs]</a><span class="k">class</span> <span class="nc">ControlFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents the controls on the right hand side of the main</span>
+<span class="sd">    window. There are two nested classes for the slam and map controls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slam_control</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_control</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_control</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ControlFrame.GpsControlFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.GpsControlFrame">[docs]</a>    <span class="k">class</span> <span class="nc">GpsControlFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scale_val</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ControlFrame.GpsControlFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.GpsControlFrame.widgets">[docs]</a>        <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set up widgets for the frame.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;GPS Control&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;On&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Off&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ControlFrame.GpsControlFrame.bind_widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.GpsControlFrame.bind_widgets">[docs]</a>        <span class="k">def</span> <span class="nf">bind_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Bind widgets to their callback functions.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_gps_on</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_gps_off</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;ButtonRelease-1&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_gps_slider_changed</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ControlFrame.MapControlFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.MapControlFrame">[docs]</a>    <span class="k">class</span> <span class="nc">MapControlFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ControlFrame.MapControlFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.MapControlFrame.widgets">[docs]</a>        <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set up widgets for the frame.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Map Control&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;On&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Off&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ControlFrame.MapControlFrame.bind_widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.MapControlFrame.bind_widgets">[docs]</a>        <span class="k">def</span> <span class="nf">bind_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Bind widgets to their callback functions.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_map_on</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_map_off</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="ControlFrame.LidarControlFrame"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.LidarControlFrame">[docs]</a>    <span class="k">class</span> <span class="nc">LidarControlFrame</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scale_val</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ControlFrame.LidarControlFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.LidarControlFrame.widgets">[docs]</a>        <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set up widgets for the frame.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Lidar Control&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="n">label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;On&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Off&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ControlFrame.LidarControlFrame.bind_widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.LidarControlFrame.bind_widgets">[docs]</a>        <span class="k">def</span> <span class="nf">bind_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Bind widgets to their callback functions.</span>
+
+<span class="sd">            :return: None</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_lidar_on</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">off_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_lidar_off</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_scale</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;ButtonRelease-1&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">callback_lidar_slider_changed</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="ControlFrame.widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.widgets">[docs]</a>    <span class="k">def</span> <span class="nf">widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up widgets for the frame.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GpsControlFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_control</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MapControlFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_control</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LidarControlFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_control</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ControlFrame.bind_widgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.ControlFrame.bind_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">bind_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Bind widgets to their callback functions.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gps_control</span><span class="o">.</span><span class="n">bind_widgets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_control</span><span class="o">.</span><span class="n">bind_widgets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lidar_control</span><span class="o">.</span><span class="n">bind_widgets</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="MainWindow"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.MainWindow">[docs]</a><span class="k">class</span> <span class="nc">MainWindow</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the main window for the application. Here the main layout is</span>
+<span class="sd">    established using a combination of the above classes and individual</span>
+<span class="sd">    tkinter widgets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_text</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">READY</span><span class="o">=</span><span class="s2">&quot;Ready&quot;</span><span class="p">,</span>
+                                <span class="n">DM_START</span><span class="o">=</span><span class="s2">&quot;Initializing data manager ...&quot;</span><span class="p">,</span>
+                                <span class="n">DM_READY</span><span class="o">=</span><span class="s2">&quot;Data is ready&quot;</span><span class="p">,</span>
+                                <span class="n">DM_NOT_READY</span><span class="o">=</span><span class="s2">&quot;Data not loaded&quot;</span><span class="p">,</span>
+                                <span class="n">GPS_START</span><span class="o">=</span><span class="s2">&quot;GPS loading ...&quot;</span><span class="p">,</span>
+                                <span class="n">GPS_READY</span><span class="o">=</span><span class="s2">&quot;GPS is ready&quot;</span><span class="p">,</span>
+                                <span class="n">GPS_REMOVE</span><span class="o">=</span><span class="s2">&quot;GPS removed&quot;</span><span class="p">,</span>
+                                <span class="n">GPS_UPDATE</span><span class="o">=</span><span class="s2">&quot;GPS updated&quot;</span><span class="p">,</span>
+                                <span class="n">MAP_START</span><span class="o">=</span><span class="s2">&quot;Map loading ...&quot;</span><span class="p">,</span>
+                                <span class="n">MAP_READY</span><span class="o">=</span><span class="s2">&quot;Map is ready&quot;</span><span class="p">,</span>
+                                <span class="n">MAP_REMOVE</span><span class="o">=</span><span class="s2">&quot;Map removed&quot;</span><span class="p">,</span>
+                                <span class="n">MAP_ERROR</span><span class="o">=</span><span class="s2">&quot;Must load data before map can be displayed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">STATUS_DELAY</span> <span class="o">=</span> <span class="mi">2000</span> <span class="c1"># (ms) delay between status changes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Robot Data Visualizer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mainWidgets</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="MainWindow.mainWidgets"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.MainWindow.mainWidgets">[docs]</a>    <span class="k">def</span> <span class="nf">mainWidgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up widgets for the main window frame.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Toolbar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span> <span class="o">=</span> <span class="n">ToolbarFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">TOP</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># Status bar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_text</span><span class="p">[</span><span class="s1">&#39;READY&#39;</span><span class="p">],</span> <span class="n">bd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">relief</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">SUNKEN</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># Controls - GPS and Map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">ControlFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="c1"># Main viewing window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">VisualizerFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Bind widgets to their callback functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toolbar</span><span class="o">.</span><span class="n">bind_widgets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bind_widgets</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.set_status"><a class="viewcode-back" href="../../gui.html#gui.robot_data_visualizer.MainWindow.set_status">[docs]</a>    <span class="k">def</span> <span class="nf">set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function sets the status bar at the bottom of the window (with a time delay).</span>
+
+<span class="sd">        :param status: Key to look up status message in the status_text dictionary.</span>
+<span class="sd">        :type status: str.</span>
+<span class="sd">        :param hold: When *hold=True*, the status update will not time out.</span>
+<span class="sd">        :type hold: bool.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_text</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_text</span><span class="p">[</span><span class="n">status</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">hold</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">STATUS_DELAY</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_text</span><span class="p">[</span><span class="s1">&#39;READY&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">status</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">hold</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">STATUS_DELAY</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_text</span><span class="p">[</span><span class="s1">&#39;READY&#39;</span><span class="p">]))</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">MainWindow</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,229 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tools.static_map_base_layer &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tools.static_map_base_layer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; Modification to the original staticmaps API, which can be found at</span>
+<span class="sd">    https://github.com/komoot/staticmap/blob/master/staticmap/staticmap.py&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">tan</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cos</span>
+<span class="kn">from</span> <span class="nn">staticmap</span> <span class="k">import</span> <span class="n">StaticMap</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+
+
+<span class="n">RECT</span> <span class="o">=</span> <span class="mi">90</span>
+<span class="n">HALF_DEGREE</span> <span class="o">=</span> <span class="mi">180</span>
+<span class="n">FULL_DEGREE</span> <span class="o">=</span> <span class="mi">360</span>
+
+
+<div class="viewcode-block" id="StaticMapBaseLayer"><a class="viewcode-back" href="../../tools.html#tools.static_map_base_layer.StaticMapBaseLayer">[docs]</a><span class="k">class</span> <span class="nc">StaticMapBaseLayer</span><span class="p">(</span><span class="n">StaticMap</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This is a overide class inherited from StaticMap. We overide some functions there to</span>
+<span class="sd">    get something we want.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span> <span class="c1"># call constructor for inherited class</span>
+
+    <span class="k">def</span> <span class="nf">_lon_to_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        transform longitude to tile number</span>
+<span class="sd">        :type lon: float</span>
+<span class="sd">        :type zoom: int</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="o">-</span><span class="n">HALF_DEGREE</span> <span class="o">&lt;=</span> <span class="n">lon</span> <span class="o">&lt;=</span> <span class="n">HALF_DEGREE</span><span class="p">):</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="p">(</span><span class="n">lon</span> <span class="o">+</span> <span class="n">HALF_DEGREE</span><span class="p">)</span> <span class="o">%</span> <span class="n">FULL_DEGREE</span> <span class="o">-</span> <span class="n">HALF_DEGREE</span>
+
+        <span class="k">return</span> <span class="p">((</span><span class="n">lon</span> <span class="o">+</span> <span class="n">HALF_DEGREE</span><span class="p">)</span> <span class="o">/</span> <span class="n">FULL_DEGREE</span><span class="p">)</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">zoom</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_lat_to_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        transform latitude to tile number</span>
+<span class="sd">        :type lat: float</span>
+<span class="sd">        :type zoom: int</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="o">-</span><span class="n">RECT</span> <span class="o">&lt;=</span> <span class="n">lat</span> <span class="o">&lt;=</span> <span class="n">RECT</span><span class="p">):</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="p">(</span><span class="n">lat</span> <span class="o">+</span> <span class="n">RECT</span><span class="p">)</span> <span class="o">%</span> <span class="n">HALF_DEGREE</span> <span class="o">-</span> <span class="n">RECT</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">log</span><span class="p">(</span><span class="n">tan</span><span class="p">(</span><span class="n">lat</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">HALF_DEGREE</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">HALF_DEGREE</span><span class="p">))</span> <span class="o">/</span> <span class="n">pi</span><span class="p">)</span> \
+               <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">zoom</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_simplify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">11</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param points: list of lon-lat pairs</span>
+<span class="sd">        :type points: list</span>
+<span class="sd">        :param tolerance: tolerance in pixel</span>
+<span class="sd">        :type tolerance: float</span>
+<span class="sd">        :return: list of lon-lat pairs</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">points</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">points</span>
+
+        <span class="n">new_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="n">new_coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
+                <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+
+        <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">new_coords</span>
+
+
+
+<div class="viewcode-block" id="StaticMapBaseLayer.extract_line_points"><a class="viewcode-back" href="../../tools.html#tools.static_map_base_layer.StaticMapBaseLayer.extract_line_points">[docs]</a>    <span class="k">def</span> <span class="nf">extract_line_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This method is not in the original API</span>
+<span class="sd">        This function extract line features.</span>
+<span class="sd">        :return: points((px, py),(),...)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="p">[(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_x_to_px</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lon_to_x</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_y_to_px</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lat_to_y</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)),</span>
+            <span class="p">)</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">coords</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">simplify</span><span class="p">:</span>
+                <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplify</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">points</span></div>
+
+
+<div class="viewcode-block" id="StaticMapBaseLayer.render_without_features"><a class="viewcode-back" href="../../tools.html#tools.static_map_base_layer.StaticMapBaseLayer.render_without_features">[docs]</a>    <span class="k">def</span> <span class="nf">render_without_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        render static map with all map features that were added to map before</span>
+<span class="sd">        :param zoom: optional zoom level, will be optimized automatically if not given.</span>
+<span class="sd">        :type zoom: int</span>
+<span class="sd">        :param center: optional center of map, will be set automatically from markers if not given.</span>
+<span class="sd">        :type center: list</span>
+<span class="sd">        :return: PIL image instance</span>
+<span class="sd">        :rtype: Image.Image</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">center</span> <span class="ow">and</span> <span class="n">zoom</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;cannot render empty map, add lines / markers / polygons first&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">zoom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_zoom</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">zoom</span>
+
+        <span class="k">if</span> <span class="n">center</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lon_to_x</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lat_to_y</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># get extent of all lines</span>
+            <span class="n">extent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_extent</span><span class="p">(</span><span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+
+            <span class="c1"># calculate center point of map</span>
+            <span class="n">lon_center</span><span class="p">,</span> <span class="n">lat_center</span> <span class="o">=</span> <span class="p">(</span><span class="n">extent</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">extent</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">extent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">extent</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lon_to_x</span><span class="p">(</span><span class="n">lon_center</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lat_to_y</span><span class="p">(</span><span class="n">lat_center</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_draw_base_layer</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="c1"># This is what draws the features in the original class - which we don&#39;t want</span>
+        <span class="c1"># self._draw_features(image)</span>
+
+        <span class="k">return</span> <span class="n">image</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

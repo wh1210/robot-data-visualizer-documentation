@@ -1,0 +1,398 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>misc.iterative_closest_point &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for misc.iterative_closest_point</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">Iterative Closest Point (ICP) SLAM example</span>
+
+<span class="sd">author: Atsushi Sakai (@Atsushi_twi)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">tools.data_manager</span> <span class="k">import</span> <span class="n">DataManager</span>
+
+<span class="c1">#  ICP parameters</span>
+<span class="n">EPS</span> <span class="o">=</span> <span class="mf">0.0001</span>
+<span class="n">MAXITER</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="n">show_animation</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="ICP_matching"><a class="viewcode-back" href="../../misc.html#misc.iterative_closest_point.ICP_matching">[docs]</a><span class="k">def</span> <span class="nf">ICP_matching</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">cpoints</span><span class="p">,</span><span class="n">time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterative Closest Point matching</span>
+
+<span class="sd">    - input</span>
+<span class="sd">    ppoints: 2D points in the previous frame</span>
+<span class="sd">    cpoints: 2D points in the current frame</span>
+
+<span class="sd">    - output</span>
+<span class="sd">    R: Rotation matrix</span>
+<span class="sd">    T: Translation vector</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># homogeneraous transformation matrix</span>
+
+    <span class="n">dError</span> <span class="o">=</span> <span class="mf">1000.0</span>
+    <span class="n">preError</span> <span class="o">=</span> <span class="mf">1000.0</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">LOWERBOUND</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">UPPERBOUND</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">DIMENSION</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">while</span> <span class="n">dError</span> <span class="o">&gt;=</span> <span class="n">EPS</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        if show_animation:</span>
+<span class="sd">            plt.cla()</span>
+<span class="sd">            plt.plot(ppoints[0, :], ppoints[1, :], &quot;.r&quot;)</span>
+<span class="sd">            plt.plot(cpoints[0, :], cpoints[1, :], &quot;.b&quot;)</span>
+<span class="sd">            plt.plot(0.0, 0.0, &quot;xr&quot;)</span>
+<span class="sd">            plt.axis(&quot;equal&quot;)</span>
+<span class="sd">            plt.title(time)</span>
+<span class="sd">            plt.pause(0.1)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inds</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">nearest_neighbor_assosiation</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">cpoints</span><span class="p">)</span>
+        <span class="n">Rt</span><span class="p">,</span> <span class="n">Tt</span> <span class="o">=</span> <span class="n">SVD_motion_estimation</span><span class="p">(</span><span class="n">ppoints</span><span class="p">[:,</span> <span class="n">inds</span><span class="p">],</span> <span class="n">cpoints</span><span class="p">)</span>
+
+        <span class="c1"># update current points</span>
+        <span class="n">cpoints</span> <span class="o">=</span> <span class="p">(</span><span class="n">Rt</span> <span class="o">*</span> <span class="n">cpoints</span><span class="p">)</span> <span class="o">+</span> <span class="n">Tt</span>
+
+        <span class="n">H</span> <span class="o">=</span> <span class="n">update_homogeneous_matrix</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">Rt</span><span class="p">,</span> <span class="n">Tt</span><span class="p">)</span>
+
+        <span class="n">dError</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">preError</span> <span class="o">-</span> <span class="n">error</span><span class="p">)</span>
+        <span class="n">preError</span> <span class="o">=</span> <span class="n">error</span>
+        <span class="c1">#print(&quot;Residual:&quot;, error)</span>
+
+        <span class="k">if</span> <span class="n">dError</span> <span class="o">&lt;=</span> <span class="n">EPS</span><span class="p">:</span>
+            <span class="c1">#print(&quot;Converge&quot;, error, dError, count)</span>
+            <span class="k">break</span>
+        <span class="k">elif</span> <span class="n">MAXITER</span> <span class="o">&lt;=</span> <span class="n">count</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Not Converge...&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">dError</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">break</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">H</span><span class="p">[</span><span class="n">LOWERBOUND</span><span class="p">:</span><span class="n">UPPERBOUND</span><span class="p">,</span> <span class="n">LOWERBOUND</span><span class="p">:</span><span class="n">UPPERBOUND</span><span class="p">])</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">H</span><span class="p">[</span><span class="n">LOWERBOUND</span><span class="p">:</span><span class="n">UPPERBOUND</span><span class="p">,</span> <span class="n">UPPERBOUND</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="update_homogeneous_matrix"><a class="viewcode-back" href="../../misc.html#misc.iterative_closest_point.update_homogeneous_matrix">[docs]</a><span class="k">def</span> <span class="nf">update_homogeneous_matrix</span><span class="p">(</span><span class="n">Hin</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update the homogeneous matrix (translation and rotation matrices combined)</span>
+
+<span class="sd">    - input</span>
+<span class="sd">    Hin: initial/previous homogeneous matrix</span>
+<span class="sd">    R: rotation matrix</span>
+<span class="sd">    T: Translation matrix</span>
+
+<span class="sd">    - output</span>
+<span class="sd">    H: updated homogeneous matrix</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    H</span>
+<span class="sd">        The updated homogeneous matrix.</span>
+<span class="sd">    Hin</span>
+<span class="sd">        The initial/previous homogeneous matrix.</span>
+<span class="sd">    R</span>
+<span class="sd">        The rotation matrix.</span>
+<span class="sd">    T</span>
+<span class="sd">        The translation matrix.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+
+    <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">H</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">Hin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">Hin</span> <span class="o">*</span> <span class="n">H</span>
+    <span class="k">return</span> <span class="n">H</span></div>
+
+<div class="viewcode-block" id="nearest_neighbor_assosiation"><a class="viewcode-back" href="../../misc.html#misc.iterative_closest_point.nearest_neighbor_assosiation">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbor_assosiation</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">cpoints</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Associates new LIDAR points with previous LIDAR points</span>
+
+<span class="sd">    - input</span>
+<span class="sd">    ppoints: 2D points in the previous frame</span>
+<span class="sd">    cpoints: 2D points in the current frame</span>
+
+<span class="sd">    - output</span>
+<span class="sd">    inds: indices</span>
+<span class="sd">    error: normalized difference in</span>
+<span class="sd">    current and previous 2D points</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># calculate the sum of residual errors</span>
+    <span class="n">dcpoints</span> <span class="o">=</span> <span class="n">ppoints</span> <span class="o">-</span> <span class="n">cpoints</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dcpoints</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+    <span class="c1"># calc index with nearest neighbor association</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cpoints</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">minid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">mind</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ppoints</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ppoints</span><span class="p">[:,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">cpoints</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">mind</span> <span class="o">&gt;=</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">mind</span> <span class="o">=</span> <span class="n">d</span>
+                <span class="n">minid</span> <span class="o">=</span> <span class="n">ii</span>
+
+        <span class="n">inds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">minid</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">inds</span><span class="p">,</span> <span class="n">error</span></div>
+
+
+<div class="viewcode-block" id="SVD_motion_estimation"><a class="viewcode-back" href="../../misc.html#misc.iterative_closest_point.SVD_motion_estimation">[docs]</a><span class="k">def</span> <span class="nf">SVD_motion_estimation</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">cpoints</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    performs single value decomposition</span>
+<span class="sd">    to determine rotation and translation</span>
+
+<span class="sd">    - input</span>
+<span class="sd">    ppoints: 2D points in the previous frame</span>
+<span class="sd">    cpoints: 2D points in the current frame</span>
+
+<span class="sd">    - output</span>
+<span class="sd">    R: rotation angle</span>
+<span class="sd">    t: translation</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cpoints</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">pshift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">ppoints</span> <span class="o">-</span> <span class="n">pm</span><span class="p">)</span>
+    <span class="n">cshift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">cpoints</span> <span class="o">-</span> <span class="n">cm</span><span class="p">)</span>
+
+    <span class="n">W</span> <span class="o">=</span> <span class="n">cshift</span> <span class="o">*</span> <span class="n">pshift</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">vh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span> <span class="o">*</span> <span class="n">vh</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">pm</span> <span class="o">-</span> <span class="n">R</span> <span class="o">*</span> <span class="n">cm</span>
+
+    <span class="k">return</span> <span class="n">R</span><span class="p">,</span> <span class="n">t</span></div>
+
+<span class="k">def</span> <span class="nf">choose_lidar_pts</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">data_i</span><span class="p">):</span>
+    <span class="n">min_lidar_pts</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="n">data_i</span>
+    <span class="c1">#print(x)</span>
+    <span class="n">x_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x_index_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x_index</span><span class="p">)</span>
+    <span class="c1">#print(x_index)</span>
+    <span class="n">y_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="c1">#print(y_index)</span>
+    <span class="n">y_index_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_index</span><span class="p">)</span>
+    <span class="c1">#print(y_index)</span>
+    <span class="n">is_equal</span> <span class="o">=</span> <span class="n">x_index_str</span> <span class="o">==</span> <span class="n">y_index_str</span>
+    <span class="n">enough_lidar</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_lidar_pts</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">is_equal</span> <span class="o">==</span> <span class="kc">True</span> <span class="o">&amp;</span> <span class="n">enough_lidar</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="vm">__file__</span> <span class="o">+</span> <span class="s2">&quot; start!!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># simulation parameters</span>
+
+    <span class="c1">#specify date</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">DataManager</span><span class="p">(</span><span class="s1">&#39;2012-04-29&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DataManager initialized&#39;</span><span class="p">)</span>
+    <span class="c1"># Download and extract sensor data</span>
+    <span class="n">dm</span><span class="o">.</span><span class="n">setup_data_files</span><span class="p">(</span><span class="s1">&#39;sensor_data&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;sensor data downloaded&#39;</span><span class="p">)</span>
+    <span class="c1"># Download and extract data for the hokuyo lidar scanner</span>
+    <span class="n">dm</span><span class="o">.</span><span class="n">setup_data_files</span><span class="p">(</span><span class="s1">&#39;hokuyo&#39;</span><span class="p">)</span>
+
+    <span class="c1"># load scans of lidar</span>
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">step_size</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">delay</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hokuyo data loading...&#39;</span><span class="p">)</span>
+    <span class="n">dm</span><span class="o">.</span><span class="n">load_lidar</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="s1">&#39;pickled&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span><span class="p">)</span>
+    <span class="n">lidar</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;lidar&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;running SLAM&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">num_samples</span><span class="o">/</span><span class="n">step_size</span><span class="p">),</span><span class="n">step_size</span><span class="p">):</span>
+        <span class="c1">#get previous and current points</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">k_next</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">lidar_i</span> <span class="o">=</span> <span class="n">lidar</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="n">choose_lidar_pts</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lidar_i</span><span class="p">)</span>
+        <span class="n">x_not_equal_time</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_not_equal_time</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1">#previous points</span>
+            <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">time</span>
+            <span class="n">check_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">ppoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">)))</span>
+            <span class="c1">#current points</span>
+            <span class="n">lidar_k</span> <span class="o">=</span> <span class="n">lidar</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span> <span class="n">time2</span> <span class="o">=</span> <span class="n">choose_lidar_pts</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">lidar_k</span><span class="p">)</span>
+            <span class="n">x2_not_equal_time2</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">x2_not_equal_time2</span><span class="p">:</span>
+                <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="n">choose_lidar_pts</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">lidar_k</span><span class="p">)</span>
+                <span class="n">cpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">k_next</span>
+                    <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">time2</span> <span class="o">=</span> <span class="n">choose_lidar_pts</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">lidar_k</span><span class="p">)</span>
+                    <span class="n">x2_not_equal_time2</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time2</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">x2_not_equal_time2</span><span class="p">:</span>
+                        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">time2</span> <span class="o">=</span> <span class="n">choose_lidar_pts</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">lidar_k</span><span class="p">)</span>
+                        <span class="n">cpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">)))</span>
+                        <span class="n">j</span> <span class="o">=</span> <span class="n">k</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="n">k</span>
+
+
+        <span class="n">R</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">ICP_matching</span><span class="p">(</span><span class="n">ppoints</span><span class="p">,</span> <span class="n">cpoints</span><span class="p">,</span><span class="n">time2</span><span class="p">)</span>
+        <span class="c1">#print(&#39;R =&#39;, R)</span>
+        <span class="c1">#print(&#39;T =&#39;, T)</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pose_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="n">pose_uv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            X = 0</span>
+<span class="sd">            Y = 0</span>
+<span class="sd">            THETA = 0</span>
+<span class="sd">            U = np.cos(THETA)</span>
+<span class="sd">            V = np.sin(THETA)</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">pose_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">])</span>
+            <span class="n">pose_uv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">])</span>
+
+        <span class="n">new_pose_xy</span><span class="o">=</span> <span class="n">pose_xy</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+        <span class="n">new_pose_uv</span><span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pose_uv</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">new_pose_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">new_pose_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">new_pose_uv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">new_pose_uv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">pause</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

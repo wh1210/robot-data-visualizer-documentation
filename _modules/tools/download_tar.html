@@ -1,0 +1,155 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tools.download_tar &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tools.download_tar</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This script downloads a tar file from the UMich robotics dataset</span>
+
+<span class="sd">code referenced from: http://blog.ppkt.eu/2014/06/python-urllib-and-tarfile/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">)</span>
+<span class="n">owd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="c1"># original working directory</span>
+<span class="n">data_dir</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ensure_data_dir_exists"><a class="viewcode-back" href="../../tools.html#tools.download_tar.ensure_data_dir_exists">[docs]</a><span class="k">def</span> <span class="nf">ensure_data_dir_exists</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function makes sure that there is a *data* directory in which to put the downloaded files.</span>
+
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">owd</span><span class="p">,</span> <span class="n">data_dir</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">owd</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="download_tar"><a class="viewcode-back" href="../../tools.html#tools.download_tar.download_tar">[docs]</a><span class="k">def</span> <span class="nf">download_tar</span><span class="p">(</span><span class="n">base_name</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">data_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function downloads the tar file and puts it in the *data* directory.</span>
+
+<span class="sd">    :param base_name: Base url</span>
+<span class="sd">    :type base_name: str.</span>
+<span class="sd">    :param date: Date to select in the data set.</span>
+<span class="sd">    :type date: str.</span>
+<span class="sd">    :param data_type: Selects the type of data to download (lidar or GPS).</span>
+<span class="sd">    :type data_type: str.</span>
+<span class="sd">    :return: str. -- name of file that was downloaded</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ensure_data_dir_exists</span><span class="p">()</span>
+    <span class="k">global</span> <span class="n">data_dir</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data_type</span> <span class="ow">is</span> <span class="s1">&#39;sensor_data&#39;</span><span class="p">:</span> <span class="c1"># miscellaneous sensors, incl. GPS</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/sensor_data/&#39;</span> <span class="o">%</span> <span class="n">base_name</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_sen.tar.gz&#39;</span> <span class="o">%</span> <span class="n">date</span>
+    <span class="k">elif</span> <span class="n">data_type</span> <span class="ow">is</span> <span class="s1">&#39;hokuyo&#39;</span><span class="p">:</span> <span class="c1"># hokuyo lidar scanner</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/hokuyo_data/&#39;</span> <span class="o">%</span> <span class="n">base_name</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_hokuyo.tar.gz&#39;</span> <span class="o">%</span> <span class="n">date</span>
+    <span class="c1"># TODO throw exception for invalid data_type</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">+</span> <span class="n">fname</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">fname</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

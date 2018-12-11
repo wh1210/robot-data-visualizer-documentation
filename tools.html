@@ -1,0 +1,441 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The tools module reference &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Miscellaneous files for experimentation" href="misc.html" />
+    <link rel="prev" title="Graphical user interface" href="gui.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="the-tools-module-reference">
+<h1>The tools module reference<a class="headerlink" href="#the-tools-module-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-tools.data_manager">
+<span id="data-manager"></span><h2>Data Manager<a class="headerlink" href="#module-tools.data_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tools.data_manager.DataManager">
+<em class="property">class </em><code class="descclassname">tools.data_manager.</code><code class="descname">DataManager</code><span class="sig-paren">(</span><em>date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles downloading, extracting and storing data to be used by the main application.</p>
+<dl class="method">
+<dt id="tools.data_manager.DataManager.get_data">
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets data from the data manager’s data dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">value of data at <em>key</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_manager.DataManager.load_all">
+<code class="descname">load_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager.load_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager.load_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads both the GPS and lidar data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_manager.DataManager.load_gps">
+<code class="descname">load_gps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager.load_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager.load_gps" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads data into the data manager’s data dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_manager.DataManager.load_lidar">
+<code class="descname">load_lidar</code><span class="sig-paren">(</span><em>num_samples</em>, <em>pickled=None</em>, <em>delete_pickle=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager.load_lidar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager.load_lidar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads lidar, with the option to use a pickled file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_samples</strong> (<em>int.</em>) – Number of samples to load</li>
+<li><strong>pickled</strong> (<em>str.</em>) – If <em>pickled=’pickled’</em>, load from existing pickle of lidar, otherwise use existing
+and save a pickle of the data.</li>
+<li><strong>delete_pickle</strong> (<em>str.</em>) – If <em>delete_pickle=’delete’</em>, delete any existing pickle of lidar.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_manager.DataManager.setup_data_files">
+<code class="descname">setup_data_files</code><span class="sig-paren">(</span><em>data_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_manager.html#DataManager.setup_data_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_manager.DataManager.setup_data_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sets up data files by downloading and extracting them into the <em>data</em> directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data_type</strong> (<em>str.</em>) – Selects lidar or GPS data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.data_loader">
+<span id="data-loader"></span><h2>Data Loader<a class="headerlink" href="#module-tools.data_loader" title="Permalink to this headline">¶</a></h2>
+<p>This class is responsible for precessing data correctly corresponding to the user’s choice.</p>
+<dl class="class">
+<dt id="tools.data_loader.DataLoader">
+<em class="property">class </em><code class="descclassname">tools.data_loader.</code><code class="descname">DataLoader</code><span class="sig-paren">(</span><em>choose</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_loader.html#DataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_loader.DataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to load data according to user’s choose, and do some preprocess to data.
+It can be usedin this way:</p>
+<p>dataloader = Dataloader(choose)
+dataloader.get_gps_dictionary()
+dataloader.get_gps_range()</p>
+<dl class="method">
+<dt id="tools.data_loader.DataLoader.get_gps_dictionary">
+<code class="descname">get_gps_dictionary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_loader.html#DataLoader.get_gps_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_loader.DataLoader.get_gps_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary contains three gps coordinate.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_loader.DataLoader.get_gps_range">
+<code class="descname">get_gps_range</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_loader.html#DataLoader.get_gps_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_loader.DataLoader.get_gps_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function return a tuple contains three tuples like(tuple1, tuple2, tuple3)
+tuple1 is a tuple contains range of latitude(min, max)
+tuple2 is a tuple contains range of longitude(min, max)
+tuple3 is a tuple contains range of altitude(min, max)
+:return: A tuple contains three tuples contains range of three GPS coordinate</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.data_loader.DataLoader.load_data">
+<code class="descname">load_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/data_loader.html#DataLoader.load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.data_loader.DataLoader.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the data chosen by user, and get the gps’s three coordinate from data file.
+:return: A dictionary contains three gps coordinate.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.download_tar">
+<span id="downloading-compressed-files"></span><h2>Downloading compressed files<a class="headerlink" href="#module-tools.download_tar" title="Permalink to this headline">¶</a></h2>
+<p>This script downloads a tar file from the UMich robotics dataset</p>
+<p>code referenced from: <a class="reference external" href="http://blog.ppkt.eu/2014/06/python-urllib-and-tarfile/">http://blog.ppkt.eu/2014/06/python-urllib-and-tarfile/</a></p>
+<dl class="function">
+<dt id="tools.download_tar.download_tar">
+<code class="descclassname">tools.download_tar.</code><code class="descname">download_tar</code><span class="sig-paren">(</span><em>base_name</em>, <em>date</em>, <em>data_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/download_tar.html#download_tar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.download_tar.download_tar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function downloads the tar file and puts it in the <em>data</em> directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>base_name</strong> (<em>str.</em>) – Base url</li>
+<li><strong>date</strong> (<em>str.</em>) – Date to select in the data set.</li>
+<li><strong>data_type</strong> (<em>str.</em>) – Selects the type of data to download (lidar or GPS).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">str. – name of file that was downloaded</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.download_tar.ensure_data_dir_exists">
+<code class="descclassname">tools.download_tar.</code><code class="descname">ensure_data_dir_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/download_tar.html#ensure_data_dir_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.download_tar.ensure_data_dir_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function makes sure that there is a <em>data</em> directory in which to put the downloaded files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.tar_extract">
+<span id="extracting-compressed-files"></span><h2>Extracting compressed files<a class="headerlink" href="#module-tools.tar_extract" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tools.tar_extract.tar_extract">
+<code class="descclassname">tools.tar_extract.</code><code class="descname">tar_extract</code><span class="sig-paren">(</span><em>file_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/tar_extract.html#tar_extract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.tar_extract.tar_extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function extracts a compressed .tar or .tar.gz file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_name</strong> (<em>str.</em>) – File name to extract.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.filter_nan">
+<span id="filtering-nan-values"></span><h2>Filtering NaN values<a class="headerlink" href="#module-tools.filter_nan" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tools.filter_nan.filter_nan">
+<code class="descclassname">tools.filter_nan.</code><code class="descname">filter_nan</code><span class="sig-paren">(</span><em>file_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/filter_nan.html#filter_nan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.filter_nan.filter_nan" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function filters out NaN values from a csv file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_name</strong> (<em>str.</em>) – Name of csv file to filter.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.get_dates_umich">
+<span id="getting-selectable-dates-for-the-umich-data-set"></span><h2>Getting selectable dates for the UMich data set<a class="headerlink" href="#module-tools.get_dates_umich" title="Permalink to this headline">¶</a></h2>
+<p>dates referenced from: <a class="reference external" href="http://robots.engin.umich.edu/nclt/downloader.py">http://robots.engin.umich.edu/nclt/downloader.py</a></p>
+<dl class="function">
+<dt id="tools.get_dates_umich.get_dates_umich">
+<code class="descclassname">tools.get_dates_umich.</code><code class="descname">get_dates_umich</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/get_dates_umich.html#get_dates_umich"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.get_dates_umich.get_dates_umich" title="Permalink to this definition">¶</a></dt>
+<dd><p>These are all the selectable dates in the UMich long term robotics dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list – all of the available dates that can be downloaded</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.read_hokuyo_30m">
+<span id="reading-data-from-the-hokuyo-lidar-scanner"></span><h2>Reading data from the Hokuyo lidar scanner<a class="headerlink" href="#module-tools.read_hokuyo_30m" title="Permalink to this headline">¶</a></h2>
+<p>code referenced from: <a class="reference external" href="http://robots.engin.umich.edu/nclt/python/read_hokuyo_30m.py">http://robots.engin.umich.edu/nclt/python/read_hokuyo_30m.py</a></p>
+<dl class="function">
+<dt id="tools.read_hokuyo_30m.convert">
+<code class="descclassname">tools.read_hokuyo_30m.</code><code class="descname">convert</code><span class="sig-paren">(</span><em>x_s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/read_hokuyo_30m.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.read_hokuyo_30m.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function converts the raw hokuyo data into meters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x_s</strong> – scaled data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float64 – distance in meters</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.read_hokuyo_30m.read_hokuyo">
+<code class="descclassname">tools.read_hokuyo_30m.</code><code class="descname">read_hokuyo</code><span class="sig-paren">(</span><em>filename</em>, <em>max_samples=1000000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/read_hokuyo_30m.html#read_hokuyo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.read_hokuyo_30m.read_hokuyo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reads the hokuyo data from a binary file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str.</em>) – Binary file to read.</li>
+<li><strong>max_samples</strong> – Maximum number of samples that will be read.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list – lidar data in cartesian coordinates</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.static_map_base_layer">
+<span id="staticmap-api-function-overrides"></span><h2>Staticmap API function overrides<a class="headerlink" href="#module-tools.static_map_base_layer" title="Permalink to this headline">¶</a></h2>
+<p>Modification to the original staticmaps API, which can be found at
+<a class="reference external" href="https://github.com/komoot/staticmap/blob/master/staticmap/staticmap.py">https://github.com/komoot/staticmap/blob/master/staticmap/staticmap.py</a></p>
+<dl class="class">
+<dt id="tools.static_map_base_layer.StaticMapBaseLayer">
+<em class="property">class </em><code class="descclassname">tools.static_map_base_layer.</code><code class="descname">StaticMapBaseLayer</code><span class="sig-paren">(</span><em>width</em>, <em>height</em>, <em>padding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/static_map_base_layer.html#StaticMapBaseLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.static_map_base_layer.StaticMapBaseLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a overide class inherited from StaticMap. We overide some functions there to
+get something we want.</p>
+<dl class="method">
+<dt id="tools.static_map_base_layer.StaticMapBaseLayer.extract_line_points">
+<code class="descname">extract_line_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/static_map_base_layer.html#StaticMapBaseLayer.extract_line_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.static_map_base_layer.StaticMapBaseLayer.extract_line_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is not in the original API
+This function extract line features.
+:return: points((px, py),(),…)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.static_map_base_layer.StaticMapBaseLayer.render_without_features">
+<code class="descname">render_without_features</code><span class="sig-paren">(</span><em>zoom=None</em>, <em>center=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/static_map_base_layer.html#StaticMapBaseLayer.render_without_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.static_map_base_layer.StaticMapBaseLayer.render_without_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>render static map with all map features that were added to map before
+:param zoom: optional zoom level, will be optimized automatically if not given.
+:type zoom: int
+:param center: optional center of map, will be set automatically from markers if not given.
+:type center: list
+:return: PIL image instance
+:rtype: Image.Image</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.staticmap_for_gps">
+<span id="using-gps-data-with-the-staticmap-api"></span><h2>Using GPS data with the staticmap API<a class="headerlink" href="#module-tools.staticmap_for_gps" title="Permalink to this headline">¶</a></h2>
+<p>This file is used to generate all points needed for plot in real-time.</p>
+<dl class="function">
+<dt id="tools.staticmap_for_gps.divide_coordinates">
+<code class="descclassname">tools.staticmap_for_gps.</code><code class="descname">divide_coordinates</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/staticmap_for_gps.html#divide_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.staticmap_for_gps.divide_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divide coordinates into about 50 pieces for following use.
+:param coordinates: coordinates contains gps data.
+:return: divided coordinates</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.staticmap_for_gps.generate_coordinates">
+<code class="descclassname">tools.staticmap_for_gps.</code><code class="descname">generate_coordinates</code><span class="sig-paren">(</span><em>data_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/staticmap_for_gps.html#generate_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.staticmap_for_gps.generate_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function preprocess gps data to make it useful for future use.
+:param data_dict: input gps data from dataManager
+:return: coordinates[[lng, lat], [], …]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.staticmap_for_gps.map_for_gps">
+<code class="descclassname">tools.staticmap_for_gps.</code><code class="descname">map_for_gps</code><span class="sig-paren">(</span><em>data_dict</em>, <em>data_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/staticmap_for_gps.html#map_for_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.staticmap_for_gps.map_for_gps" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to generate essential (px_x, px_y) coordinates to draw path.
+:param data_dict: where to get data
+:param data_dir: where to put output picture
+:return: x_coordinates and y_coordinates in pixels for gps data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.staticmap_for_gps.map_for_gps_gif">
+<code class="descclassname">tools.staticmap_for_gps.</code><code class="descname">map_for_gps_gif</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/staticmap_for_gps.html#map_for_gps_gif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.staticmap_for_gps.map_for_gps_gif" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to generate 48 pictures to generate gif.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical user interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="gui.html" title="previous chapter">Graphical user interface</a></li>
+      <li>Next: <a href="misc.html" title="next chapter">Miscellaneous files for experimentation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

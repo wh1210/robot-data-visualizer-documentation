@@ -1,0 +1,174 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tools.read_hokuyo_30m &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tools.read_hokuyo_30m</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">code referenced from: http://robots.engin.umich.edu/nclt/python/read_hokuyo_30m.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../tools.html#tools.read_hokuyo_30m.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">x_s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function converts the raw hokuyo data into meters.</span>
+
+<span class="sd">    :param x_s: scaled data</span>
+<span class="sd">    :return: float64 -- distance in meters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">scaling</span> <span class="o">=</span> <span class="mf">0.005</span> <span class="c1"># 5 mm</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="o">-</span><span class="mf">100.0</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x_s</span> <span class="o">*</span> <span class="n">scaling</span> <span class="o">+</span> <span class="n">offset</span>
+
+    <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="read_hokuyo"><a class="viewcode-back" href="../../tools.html#tools.read_hokuyo_30m.read_hokuyo">[docs]</a><span class="k">def</span> <span class="nf">read_hokuyo</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">max_samples</span><span class="o">=</span><span class="mi">1000000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function reads the hokuyo data from a binary file.</span>
+
+<span class="sd">    :param filename: Binary file to read.</span>
+<span class="sd">    :type filename: str.</span>
+<span class="sd">    :param max_samples: Maximum number of samples that will be read.</span>
+<span class="sd">    :type num_samples: int.</span>
+<span class="sd">    :return: list -- lidar data in cartesian coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># List of tuples (x, y, timestamp) to return</span>
+    <span class="c1"># x and y are lists of values</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># hokuyo_30m always has 1081 hits</span>
+    <span class="n">num_hits</span> <span class="o">=</span> <span class="mi">1081</span>
+
+    <span class="c1"># angles for each range observation</span>
+    <span class="n">rad0</span> <span class="o">=</span> <span class="o">-</span><span class="mi">135</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.0</span><span class="p">)</span>
+    <span class="n">radstep</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.0</span><span class="p">)</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">rad0</span><span class="p">,</span> <span class="n">rad0</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_hits</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">radstep</span><span class="p">,</span> <span class="n">num_hits</span><span class="p">)</span>
+
+    <span class="c1"># Open file for binary read</span>
+    <span class="n">f_bin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">max_samples</span><span class="p">:</span>
+            <span class="c1"># Read timestamp</span>
+            <span class="n">buf</span> <span class="o">=</span> <span class="n">f_bin</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">8</span><span class="p">:</span>
+                <span class="n">utime</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&lt;Q&#39;</span><span class="p">,</span> <span class="n">buf</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_hits</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_hits</span><span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&lt;H&#39;</span><span class="p">,</span> <span class="n">f_bin</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+
+            <span class="c1"># Append tuple of positions and timestamp</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">utime</span><span class="p">))</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">f_bin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">read_hokuyo</span><span class="p">(</span><span class="s1">&#39;../data/2013-01-10/hokuyo_30m.bin&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,519 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Graphical user interface &#8212; Robot Data Visualizer 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The tools module reference" href="tools.html" />
+    <link rel="prev" title="Welcome to Robot Data Visualizer’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-gui.robot_data_visualizer">
+<span id="graphical-user-interface"></span><h1>Graphical user interface<a class="headerlink" href="#module-gui.robot_data_visualizer" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="gui.robot_data_visualizer.ControlFrame">
+<em class="property">class </em><code class="descclassname">gui.robot_data_visualizer.</code><code class="descname">ControlFrame</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents the controls on the right hand side of the main
+window. There are two nested classes for the slam and map controls.</p>
+<dl class="class">
+<dt id="gui.robot_data_visualizer.ControlFrame.GpsControlFrame">
+<em class="property">class </em><code class="descname">GpsControlFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.GpsControlFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.GpsControlFrame" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.GpsControlFrame.bind_widgets">
+<code class="descname">bind_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.GpsControlFrame.bind_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.GpsControlFrame.bind_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind widgets to their callback functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.GpsControlFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.GpsControlFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.GpsControlFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gui.robot_data_visualizer.ControlFrame.LidarControlFrame">
+<em class="property">class </em><code class="descname">LidarControlFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.LidarControlFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.LidarControlFrame" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.LidarControlFrame.bind_widgets">
+<code class="descname">bind_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.LidarControlFrame.bind_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.LidarControlFrame.bind_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind widgets to their callback functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.LidarControlFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.LidarControlFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.LidarControlFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gui.robot_data_visualizer.ControlFrame.MapControlFrame">
+<em class="property">class </em><code class="descname">MapControlFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.MapControlFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.MapControlFrame" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.MapControlFrame.bind_widgets">
+<code class="descname">bind_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.MapControlFrame.bind_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.MapControlFrame.bind_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind widgets to their callback functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.MapControlFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.MapControlFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.MapControlFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.bind_widgets">
+<code class="descname">bind_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.bind_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.bind_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind widgets to their callback functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ControlFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ControlFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ControlFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gui.robot_data_visualizer.MainWindow">
+<em class="property">class </em><code class="descclassname">gui.robot_data_visualizer.</code><code class="descname">MainWindow</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#MainWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.MainWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main window for the application. Here the main layout is
+established using a combination of the above classes and individual
+tkinter widgets.</p>
+<dl class="method">
+<dt id="gui.robot_data_visualizer.MainWindow.mainWidgets">
+<code class="descname">mainWidgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#MainWindow.mainWidgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.MainWindow.mainWidgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the main window frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.MainWindow.set_status">
+<code class="descname">set_status</code><span class="sig-paren">(</span><em>status</em>, <em>hold=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#MainWindow.set_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.MainWindow.set_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sets the status bar at the bottom of the window (with a time delay).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>status</strong> (<em>str.</em>) – Key to look up status message in the status_text dictionary.</li>
+<li><strong>hold</strong> (<em>bool.</em>) – When <em>hold=True</em>, the status update will not time out.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gui.robot_data_visualizer.ToolbarFrame">
+<em class="property">class </em><code class="descclassname">gui.robot_data_visualizer.</code><code class="descname">ToolbarFrame</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ToolbarFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ToolbarFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents the toolbar at the top of the window.</p>
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ToolbarFrame.bind_widgets">
+<code class="descname">bind_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ToolbarFrame.bind_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ToolbarFrame.bind_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bind widgets to their callback functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.ToolbarFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#ToolbarFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.ToolbarFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gui.robot_data_visualizer.VisualizerFrame">
+<em class="property">class </em><code class="descclassname">gui.robot_data_visualizer.</code><code class="descname">VisualizerFrame</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main window where the robot data is seen by the user.</p>
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_date_changed">
+<code class="descname">callback_date_changed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_date_changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_date_changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to a change in the date selection menu in the toolbar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_gps_off">
+<code class="descname">callback_gps_off</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_gps_off"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_gps_off" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>Off</em> button under the <em>GPS Control</em> menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_gps_on">
+<code class="descname">callback_gps_on</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_gps_on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_gps_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>On</em> button under the <em>GPS Control</em> menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_gps_slider_changed">
+<code class="descname">callback_gps_slider_changed</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_gps_slider_changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_gps_slider_changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>Off</em> button under the <em>GPS Control</em> menu.
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_initialize_data_manager">
+<code class="descname">callback_initialize_data_manager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_initialize_data_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_initialize_data_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>Load Data</em> button.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_map_off">
+<code class="descname">callback_map_off</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_map_off"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_map_off" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>Off</em> button under the <em>Map Control</em> menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.callback_map_on">
+<code class="descname">callback_map_on</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.callback_map_on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.callback_map_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback responds to the <em>On</em> button under the <em>Map Control</em> menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.get_idx_for_gps_update">
+<code class="descname">get_idx_for_gps_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.get_idx_for_gps_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.get_idx_for_gps_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the index to be used for updating the GPS data.
+:return: int – the index to be used for the GPS update</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.get_idx_for_lidar_update">
+<code class="descname">get_idx_for_lidar_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.get_idx_for_lidar_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.get_idx_for_lidar_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the index to be used for updating the Lidar data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">int – the index to be used for the Lidar update</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.get_map_scale">
+<code class="descname">get_map_scale</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.get_map_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.get_map_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the map scale in units of meters per pixel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">float64 – map scale (m/px)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.get_timestamp_for_gps_update">
+<code class="descname">get_timestamp_for_gps_update</code><span class="sig-paren">(</span><em>gps_data_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.get_timestamp_for_gps_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.get_timestamp_for_gps_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the timestamp in a readable format for the given GPS data index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gps_data_idx</strong> – Index into the array of GPS data to be used for retrieval of the time stamp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">str – the timestamp</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.setup_data">
+<code class="descname">setup_data</code><span class="sig-paren">(</span><em>date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.setup_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.setup_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sets up all of the data (except lidar) needed by the application.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>date</strong> (<em>str.</em>) – Determines which date from the robotics dataset to use.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.update_gps">
+<code class="descname">update_gps</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.update_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.update_gps" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function updates the GPS data that is displayed in the main viewing window.
+:param idx: Index into the array of GPS data that is to be displayed.
+:type idx: int.
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.update_timestamp">
+<code class="descname">update_timestamp</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.update_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.update_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function updates the timestamp in the main viewing window.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>idx</strong> (<em>int.</em>) – Index into the array of GPS data to be used for retrieval of the time stamp.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.robot_data_visualizer.VisualizerFrame.widgets">
+<code class="descname">widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gui/robot_data_visualizer.html#VisualizerFrame.widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gui.robot_data_visualizer.VisualizerFrame.widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up widgets for the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Robot Data Visualizer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Graphical user interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">The tools module reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous files for experimentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Robot Data Visualizer’s documentation!</a></li>
+      <li>Next: <a href="tools.html" title="next chapter">The tools module reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ken Latimer, Ray Adler, Hao Wu and Robin Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/gui.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
